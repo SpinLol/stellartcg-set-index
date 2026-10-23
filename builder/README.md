@@ -1,6 +1,6 @@
 # StellarTCG set catalog builder
 
-The catalog contains metadata and source artwork URLs, never the artwork library itself. It uses a pinned TCGdex source snapshot and checks the provider's per-language artwork listings. Physical TCG sets are included; Pokemon TCG Pocket is excluded.
+Card catalogs contain metadata and upstream scan URLs. Curated product packaging is additionally published under `artwork/`, with source checksums, processing recipes and per-face provenance. It uses a pinned TCGdex source snapshot and checks the provider's per-language artwork listings. Physical TCG sets are included; Pokemon TCG Pocket is excluded.
 
 ## Rebuild
 
@@ -11,6 +11,10 @@ npm ci --ignore-scripts --no-audit --no-fund
 python prepare.py --output .catalog-work
 node build.mjs --source .catalog-work/tcgdex --profiles sources/battle-profiles.json.gz --output catalog --cache .catalog-work/http --overrides sources/overrides.json
 ```
+
+The repository workflow also restores `sources/product-metadata.json.gz`, verifies/reuses the supplied image bundle, runs `build_product_art.py`, then `attach_products.mjs` and `test_products.mjs`. Product metadata is pinned in the small compressed source bundle; regenerate that bundle and its SHA-256 when curating it. Do not overwrite the owner's source images. Photographic packaging uses WebP 95; supplied flat panels and otherwise-unhosted included card scans remain lossless. Source crops are not enlarged beyond their actual pixel density.
+
+`catalog/products/<set-id>.json` distinguishes photographed panels from companion artwork. It also records packaging previews for products whose contents or required special printings remain unverified. Only templates with resolved dependencies are installed. Unseen panels are never claimed as authentic retail scans; ordinary rendered foil is not an exact manufacturer foil reproduction. Supplementary promo/Energy printings do not count toward numbered-set completion or enter ordinary pack pools. Server-specific cosmetic accessories require the product editor.
 
 The TypeScript AST reader accepts literal values, references, spreads and string concatenation. It does not execute upstream JavaScript. Parser failures, missing scans and special-printing reviews appear in coverage reports. Source metadata's MIT license does not grant ownership of Pokemon artwork; images remain on their source hosts.
 

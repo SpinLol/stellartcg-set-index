@@ -23,19 +23,29 @@ jobs:
         run: npm ci --prefix builder --ignore-scripts --no-audit --no-fund
       - name: Restore pinned executable-profile metadata
         run: python builder/restore_profiles.py
+      - name: Restore curated product metadata
+        run: python builder/restore_product_metadata.py
       - name: Fetch upstream metadata snapshot
         run: python builder/prepare.py --output .catalog-work
+      - name: Install packaging image tools
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
+      - name: Build reviewed packaging panels
+        run: python builder/build_product_art.py --recipes sources/product-artwork.json --output artwork --cache .catalog-work/product-sources --workers 4
       - name: Build and validate per-set catalogs
         run: node builder/build.mjs --source .catalog-work/tcgdex --profiles sources/battle-profiles.json.gz --output catalog --cache .catalog-work/http --overrides sources/overrides.json
       - name: Record source provenance
         run: cp .catalog-work/source.json catalog/source.json && cp .catalog-work/tcgdex/LICENSE sources/TCGdex-LICENSE.txt
+      - name: Attach validated product definitions and face provenance
+        run: node builder/attach_products.mjs --catalog catalog --sources sources --artwork artwork
       - name: Verify all published manifests
         run: node builder/test.mjs catalog
+      - name: Verify product contents and packaging references
+        run: node builder/test_products.mjs catalog
       - name: Publish changed metadata
         run: |
           git config user.name 'StellarTCG Catalog'
           git config user.email 'catalog@users.noreply.github.com'
-          git add catalog sources/TCGdex-LICENSE.txt
+          git add catalog artwork sources/TCGdex-LICENSE.txt sources/product-artwork.json sources/product-artwork-catalog.json sources/product-definitions.json
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh verified source coverage and set catalogs'
             git push origin HEAD:main

@@ -1,38 +1,41 @@
 # StellarTCG Set Catalog
 
-Public set metadata for StellarTCG 1.54.0 and later. Catalogs contain JSON definitions, source artwork links and explicit coverage reports. The artwork library is not hosted in this repository.
-
-The initial scan covers **380 physical set definitions**, exposed as **1,118 language-specific catalogs**, including **201 English set catalogs**. Coverage changes as upstream metadata/artwork becomes available; `catalog/coverage.json` is authoritative. Pokemon TCG Pocket is excluded.
+Public metadata and curated packaging artwork for StellarTCG 1.54.0 and later.
+No collecting content is installed by default. Pokemon TCG Pocket is excluded.
 
 ## Use in game
 
-Open **Admin > Content catalog > Online set library**, or run:
-
 ```
 /tcg admin server refresh
-/tcg admin server catalog paldean
-/tcg admin server info paldean_fates
-/tcg admin server download paldean_fates
+/tcg admin server catalog ascended
+/tcg admin server info ascended_heroes
+/tcg admin server download ascended_heroes
 /tcg admin server status
 ```
 
-Set arguments tab-complete canonical IDs and unambiguous English names. Non-operator staff require `stellartcg.admin` and `stellartcg.admin.content`. The mod ships without collecting content: no set is installed until an administrator explicitly requests it.
+Arguments tab-complete. Staff need `stellartcg.admin` and `stellartcg.admin.content` (or operator access). An incomplete provider list requires the explicit `available` suffix. Existing sets, product IDs and administrator edits are never overwritten; this is a library for new installations, not an overwrite updater.
 
-Incomplete sets require the explicit `available` argument. Existing server sets and custom edits are never overwritten. Downloads are resumable, validated before publication and subject to configurable disk/network budgets. Successful artwork moves directly into live content; no second permanent importer artwork cache is retained. The existing StellarEngine/chest menus remain compatible.
+## Product artwork coverage
 
-## Accuracy
+This pass catalogues **618 English product/artwork records** across Scarlet & Violet, modern Mega Evolution, 30th Celebration and 25th Celebrations. Each record has separately named front, back, left, right, top and bottom panels plus an inventory icon. Multi-tin sheets are split into individual covers.
 
-* Attacks and abilities import as text. Only exact, implemented printing profiles enable battles; name-only fallback is blocked for unverified imported cards.
-* Plain variants come from explicit source records. Special stamps, Master Ball and other alternate fronts require verified mappings/assets. Unclassified scans are labeled `source_scan`; missing printings remain in per-set review reports.
-* Product contents, packaging faces and retail pull rates are not invented. **The initial catalog has no verified sealed-product entries**; the schema and importer support adding them through curated overrides.
-* Neutral variant weights are server defaults, not official pull odds. Generic rendered foil is not a claim of physically identical foil patterns.
+**These are not 601 completely scanned retail packages.** Authentic photographs, perspective-corrected crops, supplied authentic panels and companion artwork are explicitly distinguished per face. Missing retail views use the previously approved companion artwork and remain listed for review. Do not describe companion panels as retail scans. The owner's Ascended Heroes ETB has all six supplied authentic panels and its supplied icon. The Celebrations UPC has photographed front, rear, left, right and top panels; its unseen bottom remains a companion panel.
 
-Each compressed catalog is checked against the SHA-256 and byte lengths in `catalog/index.json`. HTTPS protects transport; this is not an independently signed catalog. Administrators can use a different trusted HTTPS index through `server-catalog.json`.
+See [the product artwork source catalog](sources/product-artwork-catalog.json), [processing recipes](sources/product-artwork.json), and generated `catalog/products/<set-id>.json` reports. Each published panel has source provenance and an output SHA-256. Photographic packaging uses WebP quality 95; supplied flat panels and included card scans remain lossless. Crops are not enlarged beyond their source pixel density.
 
-## Maintenance
+**Ready product templates** are attached to the set manifests only after their contained cards, finishes, packs and pool entries can be resolved. Mixed-expansion packs and unverified special printings remain pending, rather than being silently substituted. The source index also records artwork for products whose gameplay templates are still pending. Consult the per-set report for the actual installable count.
 
-The **Refresh set catalogs** Actions workflow runs weekly and can be dispatched manually. It parses a pinned TCGdex snapshot as literal data, checks artwork listings, verifies every generated manifest and commits changed metadata. Refreshing this repository never overwrites sets already installed on a server.
+Included promo/Energy scans are supplementary printings excluded from numbered-set completion and ordinary pack pools. Unverified executable battle profiles remain disabled. Physical accessory rewards require server-specific cosmetics configured through the product editor; these are documented in template metadata. Gameplay pack collation/weights are configurable defaults, not a claim of factory pull odds.
 
-See [builder documentation](builder/README.md) for local builds and `sources/overrides.json` for curated special printings/products. Pinned executable-profile fingerprints prevent new or changed card text from inheriting unrelated battle logic.
+## Accuracy and safety
 
-[TCGdex](https://github.com/tcgdex/cards-database) supplies the multilingual metadata; its MIT license is preserved in `sources/TCGdex-LICENSE.txt`. Pokemon artwork and trademarks remain with their respective rights holders. This project is not affiliated with The Pokemon Company.
+* Card metadata comes from a pinned [TCGdex snapshot](https://github.com/tcgdex/cards-database); its MIT license is retained in `sources/TCGdex-LICENSE.txt`.
+* Ordinary variants come from source records. Missing stamped/Master Ball or other special fronts remain reviews; another printing's art is not relabeled as that special printing.
+* Battle mappings require exact implemented printing fingerprints. Importing readable attack text does not create new executable attack logic.
+* Compressed manifests and artwork are checksum-checked and decoded before installation. The importer enforces disk, image and network limits and preserves custom edits.
+* Successful artwork is moved into live content; no second permanent importer artwork cache is kept.
+* The weekly/manual Actions workflow reuses unchanged published panels. A changed source checksum stops publication instead of silently replacing the artwork.
+
+Pokemon artwork and trademarks belong to their respective rights holders. Original photographs and retail documentation remain credited by URL in the face records. Companion illustrations are clearly marked. This project is not affiliated with The Pokemon Company.
+
+Upcoming Delta Reign artwork is catalogued as a preview, but its English card catalogue is not yet exposed by the metadata snapshot. It remains unavailable to the in-game installer until that source metadata exists.
