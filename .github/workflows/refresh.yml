@@ -29,6 +29,8 @@ jobs:
         run: node builder/build.mjs --source .catalog-work/tcgdex --profiles sources/battle-profiles.json.gz --output catalog --cache .catalog-work/http --overrides sources/overrides.json
       - name: Record source provenance
         run: cp .catalog-work/source.json catalog/source.json && cp .catalog-work/tcgdex/LICENSE sources/TCGdex-LICENSE.txt
+      - name: Verify all published manifests
+        run: node builder/test.mjs catalog
       - name: Publish changed metadata
         run: |
           git config user.name 'StellarTCG Catalog'
