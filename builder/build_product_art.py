@@ -36,10 +36,10 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--recipes',default='sources/product-artwork.json');ap.add_argument('--output',default='artwork');ap.add_argument('--cache',default='.catalog-work/product-sources');ap.add_argument('--workers',type=int,default=4);a=ap.parse_args()
     source=Path(a.recipes);doc=json.loads(source.read_text('utf8'));out=Path(a.output);cache=Path(a.cache);cache.mkdir(parents=True,exist_ok=True)
     embedded={}
-    if doc.get('embedded_bundle'):
-        bundle=doc['embedded_bundle'];packed=(source.parent/bundle['file']).read_bytes()if bundle.get('file')else base64.b64decode(''.join((source.parent/p).read_text('ascii').strip()for p in bundle['files']),validate=True)
+    for bundle in ([doc['embedded_bundle']]if doc.get('embedded_bundle')else[])+doc.get('embedded_bundles',[]):
+        packed=(source.parent/bundle['file']).read_bytes()if bundle.get('file')else base64.b64decode(''.join((source.parent/p).read_text('ascii').strip()for p in bundle['files']),validate=True)
         if digest(packed)!=bundle['sha256']:raise ValueError('Supplied image bundle checksum mismatch')
-        embedded=json.loads(gzip.decompress(packed))
+        embedded.update(json.loads(gzip.decompress(packed)))
     def one(pair):
         key,r=pair;target=out/r['path'];receipt=target.with_suffix(target.suffix+'.json')
         recipe_sha=digest(json.dumps(r,sort_keys=True,separators=(',',':')).encode())

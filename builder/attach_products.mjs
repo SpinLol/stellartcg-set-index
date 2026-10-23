@@ -21,6 +21,15 @@ for(const e of index.sets){
  }
  const artById=new Map(records.map(p=>[p.id,p]));
  const addAsset=(p,key)=>{const a=texture(key),value={path:p,url:a.url,sha256:a.sha256};if(paths.has(p)&&JSON.stringify(paths.get(p))!==JSON.stringify(value))throw Error('Conflicting artwork path '+p);paths.set(p,value);return a;};
+ // Deliver every reviewed product's artwork with its set, even when its retail
+ // contents need more curation. Inactive visual templates live in the report,
+ // outside ContentLoader's active product directory.
+ for(const source of records){
+  const visual={id:source.id,name:source.name,set:e.id,type:source.type,texture:'textures/'+source.icon+'.webp',model:{shape:source.shape,layout:'front',textures:{}}};addAsset('products/'+visual.texture,source.icon);
+  for(const face of ['front','back','left','right','top','bottom']){const key=source.faces[face].texture;visual.model.textures[face]='textures/'+key+'.webp';addAsset('products/'+visual.model.textures[face],key);}
+  for(const key of source.wrapper_variants)addAsset('products/textures/'+key+'.webp',key);
+  m.reviews.push({product:source.id,reason:'Product artwork and visual template',requires_admin_review:!ready.some(p=>p.id===source.id),visual_template:visual});
+ }
  const supplement=gameplay.supplemental_cards.filter(p=>p.set===e.id);
  for(const s of supplement){
   const d=structuredClone(s.definition),p='cards/'+d.id+'.json';if(files.has(p))throw Error('Supplementary printing would replace a numbered card');

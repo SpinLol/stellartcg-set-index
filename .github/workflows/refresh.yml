@@ -29,6 +29,10 @@ jobs:
         run: python builder/prepare.py --output .catalog-work
       - name: Install packaging image tools
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
+      - name: Restore already reviewed packaging assets when requested
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python builder/bootstrap_product_art.py
       - name: Build reviewed packaging panels
         run: python builder/build_product_art.py --recipes sources/product-artwork.json --output artwork --cache .catalog-work/product-sources --workers 4
       - name: Build and validate per-set catalogs
@@ -46,6 +50,9 @@ jobs:
           git config user.name 'StellarTCG Catalog'
           git config user.email 'catalog@users.noreply.github.com'
           git add catalog artwork sources/TCGdex-LICENSE.txt sources/product-artwork.json sources/product-artwork-catalog.json sources/product-definitions.json
+          if [ -f sources/packaging-bootstrap.json ]; then
+            git rm sources/packaging-bootstrap.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh verified source coverage and set catalogs'
             git push origin HEAD:main
