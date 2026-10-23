@@ -1,0 +1,40 @@
+name: Refresh set catalogs
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 6 * * 1'
+  push:
+    paths:
+      - 'builder/**'
+      - 'sources/**'
+      - '.github/workflows/refresh.yml'
+permissions:
+  contents: write
+concurrency:
+  group: set-catalog-publication
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install literal-data parser
+        run: npm ci --prefix builder --ignore-scripts --no-audit --no-fund
+      - name: Restore pinned executable-profile metadata
+        run: python builder/restore_profiles.py
+      - name: Fetch upstream metadata snapshot
+        run: python builder/prepare.py --output .catalog-work
+      - name: Build and validate per-set catalogs
+        run: node builder/build.mjs --source .catalog-work/tcgdex --profiles sources/battle-profiles.json.gz --output catalog --cache .catalog-work/http --overrides sources/overrides.json
+      - name: Record source provenance
+        run: cp .catalog-work/source.json catalog/source.json && cp .catalog-work/tcgdex/LICENSE sources/TCGdex-LICENSE.txt
+      - name: Publish changed metadata
+        run: |
+          git config user.name 'StellarTCG Catalog'
+          git config user.email 'catalog@users.noreply.github.com'
+          git add catalog sources/TCGdex-LICENSE.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh verified source coverage and set catalogs'
+            git push origin HEAD:main
+          fi
