@@ -6,6 +6,8 @@ on:
       - 'sources/official-products.json.gz'
       - 'sources/official-products.sha256'
       - 'builder/attach_official_products.py'
+      - 'builder/bootstrap_official_product_art.py'
+      - 'sources/official-product-art-bootstrap.json'
       - '.github/workflows/official-products.yml'
 permissions:
   contents: write
@@ -20,6 +22,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install the pinned packaging encoder
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Restore previously verified packaging assets
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python builder/bootstrap_official_product_art.py
       - name: Attach checksum-pinned official products and packaging
         run: python builder/attach_official_products.py
       - name: Validate all compressed catalogs and card references
@@ -31,6 +37,9 @@ jobs:
           git config user.name 'StellarTCG Catalog'
           git config user.email 'catalog@users.noreply.github.com'
           git add catalog artwork/official
+          if [ -f sources/official-product-art-bootstrap.json ]; then
+            git rm sources/official-product-art-bootstrap.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m 'Publish verified official product catalogs and artwork'
             git push origin HEAD:main
