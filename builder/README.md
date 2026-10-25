@@ -37,3 +37,11 @@ Example special-art mapping (replace placeholder URL with a verified source befo
 ```
 
 Administrators must add custom artwork hosts to `server-catalog.json`. A finish is an in-mod approximation unless its exact pattern has been separately verified. Generic holo rendering is not a claim of physically identical foil.
+
+## Official retail extension
+
+`sources/official-products.json.gz` and its SHA-256 contain the separately reviewed retail extension. The importer only accepts documented physical products with pinned photographs and resolved contents. Named expansion packs are never replaced with another set. Decks require complete 30/60-card lists. Where a historical deck list specifies basic Energy without a collector number, the chosen verified same-era printing is recorded explicitly. Stamped/metal artwork is never invented.
+
+`python builder/attach_official_products.py` adds the extension to an existing catalog. It verifies source-image bytes, publishes WebP 95 packaging, maintains six model faces, excludes supplementary printings from completion and checks local product/card dependencies. Missing photographic sides are explicitly companion textures. Existing product IDs are preserved.
+
+The dedicated official-products workflow publishes this data without rebuilding all card catalogs. A commit marked `[products-only]` uses that workflow; the weekly complete refresh also reapplies the extension. Coverage and factual references are in `catalog/official-product-coverage.json` and `catalog/products/official_<set>.json`.

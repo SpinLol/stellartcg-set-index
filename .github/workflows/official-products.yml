@@ -1,0 +1,37 @@
+name: Publish verified official products
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'sources/official-products.json.gz'
+      - 'sources/official-products.sha256'
+      - 'builder/attach_official_products.py'
+      - '.github/workflows/official-products.yml'
+permissions:
+  contents: write
+concurrency:
+  group: set-catalog-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned packaging encoder
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Attach checksum-pinned official products and packaging
+        run: python builder/attach_official_products.py
+      - name: Validate all compressed catalogs and card references
+        run: node builder/test.mjs catalog
+      - name: Validate every product and its six packaging faces
+        run: node builder/test_products.mjs catalog
+      - name: Publish validated catalogs and artwork together
+        run: |
+          git config user.name 'StellarTCG Catalog'
+          git config user.email 'catalog@users.noreply.github.com'
+          git add catalog artwork/official
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified official product catalogs and artwork'
+            git push origin HEAD:main
+          fi

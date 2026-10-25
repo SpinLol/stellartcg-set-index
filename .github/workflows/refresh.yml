@@ -15,6 +15,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   refresh:
+    # Product-only curation validates and publishes through its smaller workflow.
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[products-only]')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -41,6 +43,8 @@ jobs:
         run: cp .catalog-work/source.json catalog/source.json && cp .catalog-work/tcgdex/LICENSE sources/TCGdex-LICENSE.txt
       - name: Attach validated product definitions and face provenance
         run: node builder/attach_products.mjs --catalog catalog --sources sources --artwork artwork
+      - name: Attach the pinned official retail-product extension
+        run: python builder/attach_official_products.py
       - name: Verify all published manifests
         run: node builder/test.mjs catalog
       - name: Verify product contents and packaging references
