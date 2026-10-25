@@ -14,6 +14,27 @@ def sha(raw):return hashlib.sha256(raw).hexdigest()
 def read(path):return json.loads(path.read_text(encoding='utf8'))
 def write(path,data):path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf8')
 def canonical(value):return value.removeprefix('stellartcg:')
+
+def repair_legacy_deck_references(catalog,index):
+    repairs=[]
+    for e in index['sets']:
+        if not e.get('products'):continue
+        file=catalog/e['manifest'];m=json.loads(gzip.decompress(file.read_bytes()));products={canonical(f['json']['id']):f['json']for f in m['files']if f['path'].startswith('products/')};changed=False
+        for pid,p in products.items():
+            missing=[r for r in p.get('special_rolls',[])if canonical(r['table'])not in products]
+            if not missing:continue
+            if p['type']!='build_and_battle_box'or sum(c.get('amount',1)for c in p.get('contents',[])if c.get('card'))!=40 or not all(re.fullmatch(r'[a-z0-9_]+_build_and_battle_deck_[234]',canonical(r['table']))for r in missing):raise ValueError('Unresolved special product dependency '+pid)
+            # These old templates supply one complete representative 40-card
+            # deck, but mistakenly referenced three unpublished alternatives.
+            # Retain its supplied deck and packs; do not fabricate the others.
+            p['special_rolls']=[r for r in p['special_rolls']if r not in missing]
+            if not p['special_rolls']:p.pop('special_rolls')
+            p.setdefault('metadata',{})['catalog_prerelease_collation']='One supplied representative 40-card deck configuration is supported. Other prerelease variants await verified standalone definitions; factory deck distribution is not asserted.'
+            note={'product':pid,'reason':'Unpublished optional prerelease deck alternatives are deferred; the supplied complete 40-card configuration and sealed packs remain available.','deferred_tables':[r['table']for r in missing]};m['reviews'].append(note);repairs.append(note);changed=True
+        if changed:
+            raw=(json.dumps(m,ensure_ascii=False,separators=(',',':'))+'\n').encode();packed=gzip.compress(raw,compresslevel=9,mtime=0);file.write_bytes(packed);e.update({'bytes':len(packed),'json_bytes':len(raw),'sha256':sha(packed)})
+    write(catalog/'product-dependency-repairs.json',{'format':1,'repairs':repairs})
+    return repairs
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--catalog',type=Path,default=Path('catalog'));ap.add_argument('--source',type=Path,default=Path('sources/official-products.json.gz'));ap.add_argument('--artwork',type=Path,default=Path('artwork'));ap.add_argument('--cache',type=Path,default=Path('.catalog-work/official-product-photos'));ap.add_argument('--workers',type=int,default=4);a=ap.parse_args()
     if not a.source.exists():print('No pinned official-product extension configured');return
@@ -129,11 +150,22 @@ def main():
         decoded=(json.dumps(manifest,ensure_ascii=False,separators=(',',':'))+'\n').encode();compressed=gzip.compress(decoded,compresslevel=9,mtime=0);file.write_bytes(compressed)
         e.update(coverage);e.update({'sha256':sha(compressed),'bytes':len(compressed),'json_bytes':len(decoded)})
         write(a.catalog/'products'/('official_'+owner+'.json'),{'format':1,'set':owner,'products':public});report.append({'set':owner,'name':e['name'],'language':e['language'],'added_products':len(products),'total_products':len(old_products),'supplemental_cards':added_cards})
+    repair_legacy_deck_references(a.catalog,index)
     index['revision']=sha(json.dumps(index['sets'],ensure_ascii=False,separators=(',',':')).encode());write(a.catalog/'index.json',index)
     coverage=read(a.catalog/'coverage.json');coverage.update({'revision':index['revision'],'products':sum(e.get('products',0)for e in index['sets']),'official_product_extension':new_total,'catalog_bytes':sum(e['bytes']for e in index['sets']),'importable_printings':sum(e['importable_cards']for e in index['sets']),'source_printings':sum(e['source_cards']for e in index['sets'])});write(a.catalog/'coverage.json',coverage)
     legacy_report=a.catalog/'product-coverage.json'
     if legacy_report.exists():
         legacy=read(legacy_report);legacy['official_product_extension']=new_total;legacy['total_installable_templates']=coverage['products'];legacy['total_source_sets']=sum(e.get('products',0)>0 for e in index['sets']);write(legacy_report,legacy)
     write(a.catalog/'official-product-coverage.json',{'format':1,'policy':doc['policy'],'added_products':new_total,'sets':len(report),'total_catalog_products':coverage['products'],'catalog_sets_with_products':sum(e.get('products',0)>0 for e in index['sets']),'photographs':len(image_records),'source_sha256':expected,'set_coverage':report})
+    audit_source=a.source.with_name('official-product-audit.json.gz')
+    if audit_source.exists():
+        audit_packed=audit_source.read_bytes();audit_hash=audit_source.with_name('official-product-audit.sha256').read_text(encoding='ascii').strip()
+        if len(audit_packed)>4*1048576 or sha(audit_packed)!=audit_hash:raise ValueError('Retail audit checksum mismatch')
+        with gzip.GzipFile(fileobj=BytesIO(audit_packed))as stream:audit_raw=stream.read(8*1048576+1)
+        if len(audit_raw)>8*1048576:raise ValueError('Retail audit decoded budget exceeded')
+        audit=json.loads(audit_raw)
+        if audit.get('format')!=1 or audit.get('complete')is not False:raise ValueError('Unsupported retail audit')
+        audit.update({'catalog_revision':index['revision'],'total_catalog_products':coverage['products']})
+        write(a.catalog/'retail-coverage-audit.json',audit)
     print(json.dumps({'added_products':new_total,'sets':len(report),'total_products':coverage['products'],'sets_with_products':sum(e.get('products',0)>0 for e in index['sets'])}),flush=True)
 if __name__=='__main__':main()

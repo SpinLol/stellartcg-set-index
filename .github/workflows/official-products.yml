@@ -5,7 +5,10 @@ on:
     paths:
       - 'sources/official-products.json.gz'
       - 'sources/official-products.sha256'
+      - 'sources/official-product-audit.json.gz'
+      - 'sources/official-product-audit.sha256'
       - 'builder/attach_official_products.py'
+      - 'builder/test_products.mjs'
       - 'builder/bootstrap_official_product_art.py'
       - 'sources/official-product-art-bootstrap.json'
       - '.github/workflows/official-products.yml'

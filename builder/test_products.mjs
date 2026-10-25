@@ -18,10 +18,11 @@ for(const e of index.sets.filter(e=>e.products)){
   }
   for(const [name,pool]of Object.entries(p.pools||{}))for(const entry of pool.entries||[])assert.ok(eligible(p,entry).length,'No eligible cards '+pid+' pool '+name+' '+JSON.stringify(entry));
   for(const slot of p.slots||[])assert.ok(p.pools[slot.pool]?.entries?.length,'Missing slot pool '+pid);
+  for(const special of p.special_rolls||[]){assert.ok(Number.isFinite(special.chance)&&special.chance>=0&&special.chance<=1,'Invalid special chance '+pid);assert.ok(items.has(id(special.table)),'Unresolved special product '+pid+' -> '+special.table);}
   for(const side of ['front','back','left','right','top','bottom']){assert.ok(assets.has('products/'+p.model.textures[side]),'Missing '+side+' artwork '+pid);panels++;}
   assert.ok(assets.has('products/'+p.texture));products++;
  }
- const walk=(p,stack=new Set())=>{assert.ok(!stack.has(p),'Nested product cycle');const next=new Set([...stack,p]);for(const c of items.get(p).contents||[])if(c.product)walk(id(c.product),next);};for(const p of items.keys())walk(p);
+ const walk=(p,stack=new Set())=>{assert.ok(!stack.has(p),'Nested product cycle');const next=new Set([...stack,p]);for(const c of items.get(p).contents||[])if(c.product)walk(id(c.product),next);for(const s of items.get(p).special_rolls||[])walk(id(s.table),next);};for(const p of items.keys())walk(p);
  for(const c of cards.values())if(c.metadata.catalog_product_inclusion){assert.equal(c.completion.counts,false);assert.equal(c.completion.master_counts,false);assert.ok(!c.tags.includes('catalog_primary'));}
 }
 console.log(JSON.stringify({products,panels,checks:'Guaranteed cards/variants, nested products, nonempty pools, six packaging faces, cycle freedom and supplementary printing completion exclusions passed'}));

@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "repository": "SpinLol/stellartcg-set-index",
+  "archive_bytes": 59128735,
+  "archive_sha256": "7f1166b319087ced623d348f023560d0a967bd2c7c3e1baf2f234c1ca98774f6",
+  "index_sha256": "dd1379826d17019540a41d74abf47bfcf18c11fe601bf5fdb9290573e77937e4",
+  "parts": [
+    {
+      "file": "part-00.bin",
+      "bytes": 6291456,
+      "sha256": "bf6fb8bffb71d1d96f0ec9f423b96814d9e7f13e29be150db837524d10935a36",
+      "git_blob": "1c05084a652828abdfab491dba7de9257ffdf582"
+    },
+    {
+      "file": "part-01.bin",
+      "bytes": 6291456,
+      "sha256": "ca9dc56eb55e34a59ab7f3d6ee014be4070aec8256f2b8c9f9841465b7023c9e",
+      "git_blob": "aab7110bac6f73913b1f570b9a90d0fb920200c1"
+    },
+    {
+      "file": "part-02.bin",
+      "bytes": 6291456,
+      "sha256": "39a843fbad93e91eabc521e6d59c7c1059deb4e0eeab14e08f47a266778298c0",
+      "git_blob": "04987fd8b2ea54f80788e2b8f0adeeb28d2c4e0b"
+    },
+    {
+      "file": "part-03.bin",
+      "bytes": 6291456,
+      "sha256": "c5399c8d0e007f1454b0ecb3a10140290c6e1b09d6413c78f55963f67ee5ca05",
+      "git_blob": "8b5d7330239554f7627606aae0120d8a914b47fe"
+    },
+    {
+      "file": "part-04.bin",
+      "bytes": 6291456,
+      "sha256": "5acff8898258aa079644a9d8e9af8e6b8cb42ae4173b5f59f59865c239bf5958",
+      "git_blob": "3118067e675df168d51adb79b6deee1b5e1398a7"
+    },
+    {
+      "file": "part-05.bin",
+      "bytes": 6291456,
+      "sha256": "5a6b319fb8159968cf7b66b28b44cc982737ea538563f759d5f0d580a4a9d9a1",
+      "git_blob": "9e30ee7e3160b607391f3c85bcfb51bf42c949dc"
+    },
+    {
+      "file": "part-06.bin",
+      "bytes": 6291456,
+      "sha256": "9e8fdc516f872907c37de60ad2ae835e28562225bfd8c2743699ed61955e74aa",
+      "git_blob": "6c166047a7a5e9bccbd50970bdd37a1a3aa19da6"
+    },
+    {
+      "file": "part-07.bin",
+      "bytes": 6291456,
+      "sha256": "00f670b5ffcfd13be587b62076d221928e8e51c5efd29488d6eaa2130ff5b0f8",
+      "git_blob": "faf79077c251a36d298a2b8d9844e759fcc9f9f6"
+    },
+    {
+      "file": "part-08.bin",
+      "bytes": 6291456,
+      "sha256": "86c715ef58e894ea950e55af1fe365747b8c82086d03a2cc72445e958d238b99",
+      "git_blob": "39e82d39285915907014c4d40aa6733b28d7e40d"
+    },
+    {
+      "file": "part-09.bin",
+      "bytes": 2505631,
+      "sha256": "9c4438d3b7f02c3a331cd33e0a2be24af603ebd8bf4293dd73bb9a29c73c07e5",
+      "git_blob": "d9349c11147810f6316072f112e78d72bd694224"
+    }
+  ]
+}
